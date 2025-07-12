@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji N5 Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: white;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .kanji {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .furigana {
+            font-size: 2rem;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .meaning {
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .flip-hint {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .kanji {
+                font-size: 6rem;
+            }
+            
+            .furigana {
+                font-size: 1.5rem;
+            }
+            
+            .meaning {
+                font-size: 1.2rem;
+            }
+            
+            .card {
+                height: 250px;
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>漢字 N5</h1>
+            <p>Flashcards untuk Belajar Kanji</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">1 / 120</div>
+
+        <div class="modes">
+            <button class="mode-btn active" data-mode="sequential">Berurutan</button>
+            <button class="mode-btn" data-mode="random">Acak</button>
+            <button class="mode-btn" data-mode="review">Review</button>
+        </div>
+
+        <div class="card-container">
+            <div class="card" id="flashcard">
+                <div class="card-face card-front">
+                    <div class="kanji" id="kanjiDisplay">一</div>
+                    <div class="flip-hint">Klik untuk melihat jawaban</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-content">
+                        <div class="furigana" id="furiganaDisplay">いち</div>
+                        <div class="meaning" id="meaningDisplay">satu</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-danger" id="prevBtn">← Sebelumnya</button>
+            <button class="btn btn-primary" id="flipBtn">Balik Kartu</button>
+            <button class="btn btn-secondary" id="nextBtn">Berikutnya →</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="totalCards">120</span>
+                <span>Total</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="currentCard">1</span>
+                <span>Saat Ini</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="remainingCards">119</span>
+                <span>Tersisa</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const kanjiData = [
+            { kanji: '一', furigana: 'いち', meaning: 'satu' },
+            { kanji: '二', furigana: 'に', meaning: 'dua' },
+            { kanji: '三', furigana: 'さん', meaning: 'tiga' },
+            { kanji: '四', furigana: 'よん/し', meaning: 'empat' },
+            { kanji: '五', furigana: 'ご', meaning: 'lima' },
+            { kanji: '六', furigana: 'ろく', meaning: 'enam' },
+            { kanji: '七', furigana: 'なな/しち', meaning: 'tujuh' },
+            { kanji: '八', furigana: 'はち', meaning: 'delapan' },
+            { kanji: '九', furigana: 'きゅう/く', meaning: 'sembilan' },
+            { kanji: '十', furigana: 'じゅう', meaning: 'sepuluh' },
+            { kanji: '千', furigana: 'せん', meaning: 'seribu' },
+            { kanji: '万', furigana: 'まん', meaning: 'sepuluh ribu' },
+            { kanji: '百', furigana: 'ひゃく', meaning: 'seratus' },
+            { kanji: '月', furigana: 'つき/がつ', meaning: 'bulan' },
+            { kanji: '日', furigana: 'ひ/にち', meaning: 'hari/matahari' },
+            { kanji: '人', furigana: 'ひと/じん', meaning: 'orang' },
+            { kanji: '分', furigana: 'ぶん/ふん', meaning: 'menit/bagian' },
+            { kanji: '時', furigana: 'じ/とき', meaning: 'waktu/jam' },
+            { kanji: '歳', furigana: 'さい', meaning: 'tahun (umur)' },
+            { kanji: '年', furigana: 'とし/ねん', meaning: 'tahun' },
+            { kanji: '週', furigana: 'しゅう', meaning: 'minggu' },
+            { kanji: '間', furigana: 'あいだ/かん', meaning: 'antara/selama' },
+            { kanji: '後', furigana: 'あと/ご', meaning: 'setelah/belakang' },
+            { kanji: '午', furigana: 'ご', meaning: 'siang' },
+            { kanji: '毎', furigana: 'まい', meaning: 'setiap' },
+            { kanji: '何', furigana: 'なに/なん', meaning: 'apa' },
+            { kanji: '半', furigana: 'はん', meaning: 'setengah' },
+            { kanji: '今', furigana: 'いま', meaning: 'sekarang' },
+            { kanji: '朝', furigana: 'あさ', meaning: 'pagi' },
+            { kanji: '昼', furigana: 'ひる', meaning: 'siang' },
+            { kanji: '夕', furigana: 'ゆう', meaning: 'sore' },
+            { kanji: '夜', furigana: 'よる', meaning: 'malam' },
+            { kanji: '先', furigana: 'さき/せん', meaning: 'depan/dulu' },
+            { kanji: '上', furigana: 'うえ/じょう', meaning: 'atas' },
+            { kanji: '下', furigana: 'した/か', meaning: 'bawah' },
+            { kanji: '中', furigana: 'なか/ちゅう', meaning: 'dalam/tengah' },
+            { kanji: '外', furigana: 'そと/がい', meaning: 'luar' },
+            { kanji: '前', furigana: 'まえ/ぜん', meaning: 'depan' },
+            { kanji: '右', furigana: 'みぎ', meaning: 'kanan' },
+            { kanji: '左', furigana: 'ひだり', meaning: 'kiri' },
+            { kanji: '方', furigana: 'かた/ほう', meaning: 'arah/cara' },
+            { kanji: '私', furigana: 'わたし', meaning: 'saya' },
+            { kanji: '男', furigana: 'おとこ', meaning: 'laki-laki' },
+            { kanji: '女', furigana: 'おんな', meaning: 'perempuan' },
+            { kanji: '名', furigana: 'な/めい', meaning: 'nama' },
+            { kanji: '国', furigana: 'くに', meaning: 'negara' },
+            { kanji: '火', furigana: 'ひ/か', meaning: 'api' },
+            { kanji: '水', furigana: 'みず/すい', meaning: 'air' },
+            { kanji: '木', furigana: 'き/もく', meaning: 'pohon/kayu' },
+            { kanji: '土', furigana: 'つち/ど', meaning: 'tanah' },
+            { kanji: '金', furigana: 'きん/かね', meaning: 'emas/uang' },
+            { kanji: '山', furigana: 'やま', meaning: 'gunung' },
+            { kanji: '川', furigana: 'かわ', meaning: 'sungai' },
+            { kanji: '田', furigana: 'た', meaning: 'sawah' },
+            { kanji: '本', furigana: 'ほん', meaning: 'buku/asli' },
+            { kanji: '林', furigana: 'はやし', meaning: 'hutan kecil' },
+            { kanji: '森', furigana: 'もり', meaning: 'hutan' },
+            { kanji: '花', furigana: 'はな', meaning: 'bunga' },
+            { kanji: '海', furigana: 'うみ', meaning: 'laut' },
+            { kanji: '父', furigana: 'ちち', meaning: 'ayah' },
+            { kanji: '母', furigana: 'はは', meaning: 'ibu' },
+            { kanji: '兄', furigana: 'あに', meaning: 'kakak laki-laki' },
+            { kanji: '姉', furigana: 'あね', meaning: 'kakak perempuan' },
+            { kanji: '弟', furigana: 'おとうと', meaning: 'adik laki-laki' },
+            { kanji: '妹', furigana: 'いもうと', meaning: 'adik perempuan' },
+            { kanji: '子', furigana: 'こ', meaning: 'anak' },
+            { kanji: '友', furigana: 'とも', meaning: 'teman' },
+            { kanji: '目', furigana: 'め', meaning: 'mata' },
+            { kanji: '耳', furigana: 'みみ', meaning: 'telinga' },
+            { kanji: '口', furigana: 'くち', meaning: 'mulut' },
+            { kanji: '手', furigana: 'て', meaning: 'tangan' },
+            { kanji: '足', furigana: 'あし', meaning: 'kaki' },
+            { kanji: '体', furigana: 'からだ', meaning: 'tubuh' },
+            { kanji: '色', furigana: 'いろ', meaning: 'warna' },
+            { kanji: '赤', furigana: 'あか', meaning: 'merah' },
+            { kanji: '黒', furigana: 'くろ', meaning: 'hitam' },
+            { kanji: '青', furigana: 'あお', meaning: 'biru' },
+            { kanji: '白', furigana: 'しろ', meaning: 'putih' },
+            { kanji: '茶', furigana: 'ちゃ', meaning: 'cokelat/teh' },
+            { kanji: '西', furigana: 'にし', meaning: 'barat' },
+            { kanji: '東', furigana: 'ひがし', meaning: 'timur' },
+            { kanji: '北', furigana: 'きた', meaning: 'utara' },
+            { kanji: '南', furigana: 'みなみ', meaning: 'selatan' },
+            { kanji: '空', furigana: 'そら', meaning: 'langit' },
+            { kanji: '天', furigana: 'てん', meaning: 'langit/surga' },
+            { kanji: '気', furigana: 'き', meaning: 'udara/perasaan' },
+            { kanji: '雨', furigana: 'あめ', meaning: 'hujan' },
+            { kanji: '風', furigana: 'かぜ', meaning: 'angin' },
+            { kanji: '電', furigana: 'でん', meaning: 'listrik' },
+            { kanji: '春', furigana: 'はる', meaning: 'musim semi' },
+            { kanji: '夏', furigana: 'なつ', meaning: 'musim panas' },
+            { kanji: '秋', furigana: 'あき', meaning: 'musim gugur' },
+            { kanji: '冬', furigana: 'ふゆ', meaning: 'musim dingin' },
+            { kanji: '大', furigana: 'おおきい', meaning: 'besar' },
+            { kanji: '少', furigana: 'すくない', meaning: 'sedikit' },
+            { kanji: '新', furigana: 'あたらしい', meaning: 'baru' },
+            { kanji: '多', furigana: 'おおい', meaning: 'banyak' },
+            { kanji: '小', furigana: 'ちいさい', meaning: 'kecil' },
+            { kanji: '早', furigana: 'はやい', meaning: 'cepat/pagi' },
+            { kanji: '広', furigana: 'ひろい', meaning: 'luas' },
+            { kanji: '明', furigana: 'あかるい', meaning: 'terang' },
+            { kanji: '良', furigana: 'いい/よい', meaning: 'baik' },
+            { kanji: '安', furigana: 'やすい', meaning: 'murah/aman' },
+            { kanji: '高', furigana: 'たかい', meaning: 'tinggi/mahal' },
+            { kanji: '長', furigana: 'ながい', meaning: 'panjang' },
+            { kanji: '犬', furigana: 'いぬ', meaning: 'anjing' },
+            { kanji: '牛', furigana: 'うし', meaning: 'sapi' },
+            { kanji: '魚', furigana: 'さかな', meaning: 'ikan' },
+            { kanji: '町', furigana: 'まち', meaning: 'kota' },
+            { kanji: '所', furigana: 'ところ', meaning: 'tempat' },
+            { kanji: '室', furigana: 'しつ', meaning: 'ruangan' },
+            { kanji: '店', furigana: 'みせ', meaning: 'toko' },
+            { kanji: '道', furigana: 'みち', meaning: 'jalan' },
+            { kanji: '駅', furigana: 'えき', meaning: 'stasiun' },
+            { kanji: '社', furigana: 'しゃ', meaning: 'perusahaan' },
+            { kanji: '校', furigana: 'こう', meaning: 'sekolah' },
+            { kanji: '行', furigana: 'いく', meaning: 'pergi' },
+            { kanji: '来', furigana: 'くる', meaning: 'datang' },
+            { kanji: '帰', furigana: 'かえる', meaning: 'pulang' },
+            { kanji: '入', furigana: 'はいる', meaning: 'masuk' },
+            { kanji: '出', furigana: 'でる', meaning: 'keluar' },
+            { kanji: '食', furigana: 'たべる', meaning: 'makan' },
+            { kanji: '飲', furigana: 'のむ', meaning: 'minum' },
+            { kanji: '話', furigana: 'はなす', meaning: 'berbicara' },
+            { kanji: '聞', furigana: 'きく', meaning: 'mendengar' },
+            { kanji: '見', furigana: 'みる', meaning: 'melihat' },
+            { kanji: '書', furigana: 'かく', meaning: 'menulis' },
+            { kanji: '読', furigana: 'よむ', meaning: 'membaca' },
+            { kanji: '言', furigana: 'いう', meaning: 'berkata' },
+            { kanji: '会', furigana: 'あう', meaning: 'bertemu' },
+            { kanji: '歩', furigana: 'あるく', meaning: 'berjalan' },
+            { kanji: '生', furigana: 'いきる', meaning: 'hidup' },
+            { kanji: '買', furigana: 'かう', meaning: 'membeli' },
+            { kanji: '学', furigana: 'まなぶ', meaning: 'belajar' },
+            { kanji: '休', furigana: 'やすむ', meaning: 'istirahat' },
+            { kanji: '立', furigana: 'たつ', meaning: 'berdiri' },
+            { kanji: '物', furigana: 'もの', meaning: 'benda' },
+            { kanji: '肉', furigana: 'にく', meaning: 'daging' },
+            { kanji: '車', furigana: 'くるま', meaning: 'mobil' },
+            { kanji: '者', furigana: 'もの', meaning: 'orang' },
+            { kanji: '員', furigana: 'いん', meaning: 'anggota' }
+        ];
+
+        let currentIndex = 0;
+        let isFlipped = false;
+        let mode = 'sequential';
+        let shuffledIndices = [];
+
+        // DOM elements
+        const card = document.getElementById('flashcard');
+        const kanjiDisplay = document.getElementById('kanjiDisplay');
+        const furiganaDisplay = document.getElementById('furiganaDisplay');
+        const meaningDisplay = document.getElementById('meaningDisplay');
+        const flipBtn = document.getElementById('flipBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const currentCardSpan = document.getElementById('currentCard');
+        const remainingCardsSpan = document.getElementById('remainingCards');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+
+        // Initialize
+        function init() {
+            shuffledIndices = Array.from({length: kanjiData.length}, (_, i) => i);
+            updateCard();
+            updateProgress();
+        }
+
+        // Update card display
+        function updateCard() {
+            const dataIndex = mode === 'random' ? shuffledIndices[currentIndex] : currentIndex;
+            const data = kanjiData[dataIndex];
+            
+            kanjiDisplay.textContent = data.kanji;
+            furiganaDisplay.textContent = data.furigana;
+            meaningDisplay.textContent = data.meaning;
+            
+            // Reset flip state
+            card.classList.remove('flipped');
+            isFlipped = false;
+            flipBtn.textContent = 'Balik Kartu';
+        }
+
+        // Update progress
+        function updateProgress() {
+            const progress = ((currentIndex + 1) / kanjiData.length) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `${currentIndex + 1} / ${kanjiData.length}`;
+            currentCardSpan.textContent = currentIndex + 1;
+            remainingCardsSpan.textContent = kanjiData.length - currentIndex - 1;
+            
+            // Update button states
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === kanjiData.length - 1;
+        }
+
+        // Flip card
+        function flipCard() {
+            card.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+            flipBtn.textContent = isFlipped ? 'Balik Lagi' : 'Balik Kartu';
+        }
+
+        // Next card
+        function nextCard() {
+            if (currentIndex < kanjiData.length - 1) {
+                currentIndex++;
+                updateCard();
+                updateProgress();
+            }
+        }
+
+        // Previous card
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+                updateProgress();
+            }
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Change mode
+        function changeMode(newMode) {
+            mode = newMode;
+            currentIndex = 0;
+            
+            if (mode === 'random') {
+                shuffleArray(shuffledIndices);
+            }
+            
+            updateCard();
+            updateProgress();
+            
+            // Update mode buttons
+            modeButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Event listeners
+        flipBtn.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', nextCard);
+        prevBtn.addEventListener('click', prevCard);
+        card.addEventListener('click', flipCard);
+
+        // Mode buttons
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeMode(btn.dataset.mode);
+            });
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    flipCard();
+                    break;
+                case 'ArrowRight':
+                    nextCard();
+                    break;
+                case 'ArrowLeft':
+                    prevCard();
+                    break;
+            }
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
